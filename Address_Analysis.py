@@ -21,8 +21,9 @@ def diffProp(firstIn,firstTot,secondIn,secondTot):
     # print("Two-sample difference of proportions: ", '{0:0.7f}'.format(pval))
     return round(pval,5)
 
-def runAddress(citations, filename):
+def runAddress(citations):
     citationsA = citations.copy()
+    # Convert W to 0, B to 1 to make processing race stats easier
     citationsA["OFF_RACE_CD"] = citationsA.apply(lambda row: 0 if row["OFF_RACE_CD"] == "W" else 1, axis=1)
 
     # Isolate 5-digit ZIP
@@ -52,12 +53,13 @@ def runAddress(citations, filename):
                               "HC03_VC79","HC04_VC79"])
 
     # Filter out low-count zip codes
-    zipJoin = zipJoin.query('COUNT>30')
+    zipJoin = zipJoin.query('COUNT>10')
 
     #Calculate two-sample difference of proportions
 
     zipJoin["DIFF_PROP_P"] = zipJoin.apply(lambda row: diffProp(row["SUM"],row["COUNT"],row["HC01_VC79"],row["HC01_VC03"]), axis=1)
 
+    # Throw in the % black for each zip, by citations and census
     zipJoin["BLACK_PCT_CITATIONS"] = zipJoin.apply(lambda row: row["SUM"]/row["COUNT"], axis=1)
     zipJoin["BLACK_PCT_CENSUS"] = zipJoin.apply(lambda row: row["HC01_VC79"]/row["HC01_VC03"], axis=1)
 

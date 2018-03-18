@@ -22,7 +22,7 @@ rawData = pd.read_pickle(filename + ".pkl")
 citations = pd.DataFrame(rawData)
 
 ## Do filtering on one year and export to csv
-filterYear = 2012
+filterYear = 2016
 citations, citationsResults = filt.filterData(citations, filterYear)
 citations.to_csv(filename + "_filtered" + filetype)
 
@@ -58,7 +58,7 @@ bootstrapResults = boot.runBootstrap(citations)
 # resultsDF.to_csv(filename + "_Results" + filetype)
 
 ## Run Address Analysis
-# returnAddy = addy.runAddress(citations, filename)
+# returnAddy = addy.runAddress(citations)
 ## Get weighted averages
 # print("Weighted average Black percent for citations: ")
 # print((returnAddy["BLACK_PCT_CITATIONS"] * returnAddy["COUNT"]).sum() / returnAddy["COUNT"].sum())
