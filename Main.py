@@ -1,5 +1,7 @@
 import datetime
 import pandas as pd
+import numpy as np
+import statsmodels.api as sm
 import Veil_Darkness as veil
 import Address_Analysis as addy
 import Convert_Filter as filt
@@ -7,47 +9,40 @@ import Bootstrap_Analysis as boot
 
 ##### Import and filtering #####
 
-# Read in original CSV citations
-filename = "FerndaleCitations2009_2017"
-# filename = "FerndaleCitationsSample"
+## Read in original CSV citations
+## Old filename: FerndaleCitations2009_2017
+## Sample data filename: FerndaleCitationsSample
+filename = "CitationsQuery2_complete"
 filetype = ".csv"
 
-parseDates = ['CITATION_DT','FORM_CITATION_DT']
+## Old datefields: parseDates = ['CITATION_DT','FORM_CITATION_DT']
+parseDates = ['Citation Date_x','Created Date_x']
 
-## Read csv into pandas dataframe
-# rawData = pd.read_csv(filename + filetype, parse_dates=parseDates, header=0, low_memory=False)
-# rawData.to_pickle(filename + ".pkl")
-## Read pickle instead of csv to speed up processing
-rawData = pd.read_pickle(filename + ".pkl")
+## Read csv into pandas dataframe - parsing dates takes time, so pickeling for speedup
+try:
+    rawData = pd.read_pickle(filename + ".pkl")
+except (OSError, IOError) as e:
+    rawData = pd.read_csv(filename + filetype, parse_dates=parseDates, header=0, low_memory=False)
+    rawData.to_pickle(filename + ".pkl")
 citations = pd.DataFrame(rawData)
 
 ## Do filtering on one year and export to csv
-filterYear = 2016
-citations, citationsResults = filt.filterData(citations, filterYear)
-citations.to_csv(filename + "_filtered" + filetype)
+# startYear = 2016
+# endYear = 2016
+# citations, citationsResults = filt.filterData(citations, startYear, endYear)
+# citations.to_csv(filename + "_filtered" + filetype)
 
 ## Run Bootstrap analysis
+citations, citationsResults = filt.filterData(citations, 2011, 2017)
 bootstrapResults = boot.runBootstrap(citations)
 
-## Run Veil of Darkness analysis
-# returnVeil = veil.runVeil(citations, filename)
-
-## Write Veil of Darkness results to file for one year
-# columnsList = ['PARK_VIOL_EXCL', 'RACE_EXCL','RACE_B','RACE_W','RACE_A','RACE_U','RACE_I','BLANK_EXCL','MI_EXCL','DATE_EXCL','TOTAL_EXCL','TOTAL_FILT','EARLY_SUNSET','LATE_SUNSET','ODDS_RATIO','DAY_VEIL_P','DAY_VEIL_STDERROR','BLACK_CNT_DAY','BLACK_CNT_NIGHT','TOTAL_DAY','TOTAL_NIGHT','BLACK_PCT_DAY','BLACK_PCT_NIGHT','TWO_SAMPLE_DIFF']
-#
-# citationsResults.extend(returnVeil)
-# resultsDF = pd.DataFrame()
-# resultsDF = resultsDF.append([citationsResults])
-# resultsDF.columns = columnsList
-# resultsDF.to_csv(filename + "_Results" + filetype)
-
-## Write Veil of Darkness results to file for multiple years
-# years=[2009,2010,2011,2012,2013,2014,2015,2016,2017]
+## Write Veil of Darkness results to file for each year & all years
+# years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
 # resultsDF = pd.DataFrame()
 #
 # for year in years:
 #     citations = pd.DataFrame(rawData)
-#     citations, citationsResults = filt.filterData(citations, year)
+#     citations, citationsResults = filt.filterData(citations, year[0], year[1])
 #     returnVeil = veil.runVeil(citations, filename)
 #     citationsResults.extend(returnVeil)
 #     citationsResults.extend([year])
@@ -55,41 +50,36 @@ bootstrapResults = boot.runBootstrap(citations)
 #
 # columnsList = ['PARK_VIOL_EXCL', 'RACE_EXCL','RACE_B','RACE_W','RACE_A','RACE_U','RACE_I','BLANK_EXCL','MI_EXCL','DATE_EXCL','TOTAL_EXCL','TOTAL_FILT','EARLY_SUNSET','LATE_SUNSET','ODDS_RATIO','DAY_VEIL_P','DAY_VEIL_STDERROR','BLACK_CNT_DAY','BLACK_CNT_NIGHT','TOTAL_DAY','TOTAL_NIGHT','BLACK_PCT_DAY','BLACK_PCT_NIGHT','TWO_SAMPLE_DIFF',"YEAR"]
 # resultsDF.columns = columnsList
-# resultsDF.to_csv(filename + "_Results" + filetype)
+# resultsDF.to_csv(filename + "_VoD_Results" + filetype)
 
-## Run Address Analysis
-# returnAddy = addy.runAddress(citations)
-## Get weighted averages
-# print("Weighted average Black percent for citations: ")
-# print((returnAddy["BLACK_PCT_CITATIONS"] * returnAddy["COUNT"]).sum() / returnAddy["COUNT"].sum())
-# print("Weighted average Black percent for census: ")
-# print((returnAddy["BLACK_PCT_CENSUS"] * returnAddy["HC01_VC03"]).sum() / returnAddy["HC01_VC03"].sum())
-# print("Weighted average Black percent for census weighted by citations: ")
-# print((returnAddy["BLACK_PCT_CENSUS"] * returnAddy["COUNT"]).sum() / returnAddy["COUNT"].sum())
-# returnAddy.to_csv("addy_result" + str(filterYear) + ".csv")
-
-## Get Address Analysis percent black for each year
-# years=[2009,2010,2011,2012,2013,2014,2015,2016,2017]
+## Get Address Analysis percent black for each year & all years
+# years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
 # resultsDF = pd.DataFrame()
 # racePctYear = []
 #
 # for year in years:
 #     citations = pd.DataFrame(rawData)
-#     citations, citationsResults = filt.filterData(citations, year)
+#     citations, citationsResults = filt.filterData(citations, year[0], year[1])
 #
-#     raceCount = citations["OFF_RACE_CD"].value_counts()
-#     returnAddy = addy.runAddress(citations, filename)
+#     raceCount = citations["Offender Race"].value_counts()
+#     returnAddy = addy.runAddress(citations)
 #     addyResults = []
 #     addyResults.extend([year])
-#     addyResults.extend([raceCount["B"]/citations.shape[0]])
-#     addyResults.extend([(returnAddy["BLACK_PCT_CITATIONS"] * returnAddy["COUNT"]).sum() / returnAddy["COUNT"].sum()])
-#     addyResults.extend([(returnAddy["BLACK_PCT_CENSUS"] * returnAddy["HC01_VC03"]).sum() / returnAddy["HC01_VC03"].sum()])
+#     ## Total black drivers divided by total citations
+#     addyResults.extend([returnAddy["SUM"].sum() / returnAddy["COUNT"].sum()])
+#     ## Total black people (census) divided by total population (census)
+#     addyResults.extend([returnAddy["HC01_VC79"].sum() / returnAddy["HC01_VC03"].sum()])
+#     ## Expected total black people (percent of Zip that's black (census), times total number of citations for that zip) divided by total number of citations
 #     addyResults.extend([(returnAddy["BLACK_PCT_CENSUS"] * returnAddy["COUNT"]).sum() / returnAddy["COUNT"].sum()])
-#     addyResults.extend([addyResults[2]-addyResults[4]])
+#     # Percentage point difference from observed percent black (citations) to expected percent black (census)
+#     addyResults.extend([addyResults[1]-addyResults[3]])
+#     # Calculate two-sample difference of proportions test
+#     count = np.array([returnAddy["SUM"].sum(), returnAddy["HC01_VC79"].sum()])
+#     nobs = np.array([returnAddy["COUNT"].sum(), returnAddy["HC01_VC03"].sum()])
+#     z1, pval = sm.stats.proportions_ztest(count, nobs)
+#     addyResults.extend([pval])
 #     resultsDF = resultsDF.append([addyResults])
 #
-# columnsList = ['YEAR','BLACK_PCT','WEIGHT_BLACK_PCT_CITATIONS','WEIGHT_BLACK_PCT_CENSUS','WEIGHT_BLACK_PCT_CENSUS_BY_CITATION','PCT_DIFF']
+# columnsList = ['YEAR','BLACK_PCT','WEIGHT_BLACK_PCT_CENSUS','WEIGHT_BLACK_PCT_CENSUS_BY_CITATION','PCT_DIFF','PVAL']
 # resultsDF.columns = columnsList
 # resultsDF.to_csv("addy_Results" + filetype)
-#
-# print(racePctYear)

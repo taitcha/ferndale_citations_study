@@ -1,27 +1,28 @@
 import datetime
 import pandas as pd
 
-def filterData(citations, yearFilter):
-    # Exclude to certain dates (year/month/day)
-    startDate = datetime.date(yearFilter, 1, 1)
-    endDate = datetime.date(yearFilter, 12, 31)
-    citationsD = citations[(citations['CITATION_DT'] >= startDate)
-                                 & (citations['CITATION_DT'] <= endDate)]
+def filterData(citations, startYear, endYear):
+    ## Exclude to certain dates (year/month/day)
+    startDate = datetime.date(startYear, 1, 1)
+    endDate = datetime.date(endYear, 12, 31)
+    citationsD = citations[(citations['Citation Date_x'] >= startDate)
+                                 & (citations['Citation Date_x'] <= endDate)]
     DATE_EXCL = len(citations.index)-len(citationsD.index)
     print("Date excluded: ", DATE_EXCL)
 
     # Exclude Parking violations (officer can't tell the race of the driver)
-    citationsDP = citationsD[~citationsD['VIOLS_DESC'].str.contains("Parking -",na=False)]
+    citationsDP = citationsD[~citationsD['Violation Category'].str.contains("PARKING",na=False)]
     PARK_VIOL_EXCL = len(citationsD.index) - len(citationsDP.index)
     print("Number of Parking violations excluded: ", PARK_VIOL_EXCL)
 
-    # Exclude citations that don't include race of driver (blank or "U" for unknown, "A" for Asian since there's so few)
-    citationsDPR = citationsDP[(citationsDP['OFF_RACE_CD'] != "U")
-                             & (citationsDP['OFF_RACE_CD'] != "A")]
+    # Exclude citations that don't include race of driver (blank or "U" for unknown, "A" for Asian, "I" for Indian since there's so few)
+    citationsDPR = citationsDP[(citationsDP['Offender Race'] != "U")
+                               & (citationsDP['Offender Race'] != "A")
+                               & (citationsDP['Offender Race'] != "I")]
     RACE_EXCL = len(citationsDP.index) - len(citationsDPR.index)
     print("Number of Race (Unknown, or Asian) excluded: ", RACE_EXCL)
 
-    raceCount = citationsDP["OFF_RACE_CD"].value_counts()
+    raceCount = citationsDP["Offender Race"].value_counts()
     RACE_B = raceCount["B"]
     RACE_W = raceCount["W"]
     RACE_U = raceCount["U"]
@@ -36,22 +37,22 @@ def filterData(citations, yearFilter):
     print("Original Race Counts: ")
     print(raceCount)
 
-    #Plot raceCount
+    ## Plot raceCount
     # raceCount.plot.bar()
     # plt.show()
 
     # Exclude rows that have blanks for Race, Sex, Address, City, State, Zip
-    citationsDPRB = citationsDPR[~citationsDPR['OFF_RACE_CD'].isnull()
-                               & (~citationsDPR['OFF_SEX_CD'].isnull())
-                               & (~citationsDPR['OFF_ADDRESS_TXT'].isnull())
-                               & (~citationsDPR['OFF_CITY_NM'].isnull())
-                               & (~citationsDPR['OFF_STATE_CD'].isnull())
-                               & (~citationsDPR['OFF_ZIP_CD'].isnull())]
+    citationsDPRB = citationsDPR[~citationsDPR['Offender Race'].isnull()
+                               & (~citationsDPR['Offender Sex Description'].isnull())
+                               & (~citationsDPR['Offender Address'].isnull())
+                               & (~citationsDPR['Offender City'].isnull())
+                               & (~citationsDPR['Offender State'].isnull())
+                               & (~citationsDPR['Offender Zip Code'].isnull())]
     BLANK_EXCL = len(citationsDPR.index) - len(citationsDPRB.index)
     print("Rows with blanks excluded: ", BLANK_EXCL)
 
     # Exclude to Michigan only
-    citationsMI = citationsDPRB[citationsDPRB["OFF_STATE_CD"]=="MI"]
+    citationsMI = citationsDPRB[citationsDPRB["Offender State"]=="MI"]
     MI_EXCL = len(citationsDPRB.index)-len(citationsMI.index)
     print("Non-MI excluded: ", MI_EXCL)
 

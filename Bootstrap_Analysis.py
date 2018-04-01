@@ -1,23 +1,16 @@
 
-import datetime
-import pandas as pd
-import statsmodels.api as sm
-import statsmodels.formula.api as smf
-import matplotlib.pyplot as plt
 from scipy import stats
-
 import numpy as np
+import Address_Analysis as addy
 import bootstrapped.bootstrap as bs
 import bootstrapped.stats_functions as bs_stats
-import Address_Analysis as addy
 
 filetype = ".csv"
 
 def runBootstrap(citations):
     ### Citations Distribution ###
-
     # Convert citations race to binomial
-    citations["OFF_RACE_CD"] = citations.apply(lambda row: 0 if row["OFF_RACE_CD"] == "W" else 1, axis=1)
+    citations["Offender Race"] = citations.apply(lambda row: 0 if row["Offender Race"] == "W" else 1, axis=1)
 
     samplesCitationList = []
     numIterations = 5000
@@ -26,7 +19,7 @@ def runBootstrap(citations):
 
     # # Get bootstrap sample for citations
     for n in (range(numIterations)):
-        sampleCitations = citations["OFF_RACE_CD"].sample(n=numSamples, replace=True).values
+        sampleCitations = citations["Offender Race"].sample(n=numSamples, replace=True).values
         samplesCitationList.append(np.mean(sampleCitations))
 
     print("Citations mean: ", np.mean(samplesCitationList))
@@ -38,14 +31,11 @@ def runBootstrap(citations):
     # plt.show()
 
     ### Census Distribution ###
-
     # Load up Census data
     returnAddy = addy.runAddress(citations)
     returnAddy.reset_index(drop=True, inplace=True)
 
-
     # Get bootstrap sample for census
-
     samplesCensusList = []
 
     for n in (range(numIterations)):
@@ -65,7 +55,6 @@ def runBootstrap(citations):
     # plt.show()
 
     # Compare census to citation samples using Wilcoxon signed-rank test
-
     z_statistic, p_value = stats.wilcoxon(samplesCitationList, samplesCensusList)
 
     print("Results of Wilcoxon signed-rank test: ")

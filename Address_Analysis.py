@@ -24,13 +24,13 @@ def diffProp(firstIn,firstTot,secondIn,secondTot):
 def runAddress(citations):
     citationsA = citations.copy()
     # Convert W to 0, B to 1 to make processing race stats easier
-    citationsA["OFF_RACE_CD"] = citationsA.apply(lambda row: 0 if row["OFF_RACE_CD"] == "W" else 1, axis=1)
+    citationsA["Offender Race"] = citationsA.apply(lambda row: 0 if row["Offender Race"] == "W" else 1, axis=1)
 
     # Isolate 5-digit ZIP
-    citationsA["ZIP5"] = citationsA["OFF_ZIP_CD"].apply(isolateZip)
+    citationsA["ZIP5"] = citationsA["Offender Zip Code"].apply(isolateZip)
 
     # Calculate percent black
-    groupZip = citationsA.groupby("ZIP5")["OFF_RACE_CD"].agg({'SUM': 'sum', "MEAN": 'mean', "COUNT": 'count'})
+    groupZip = citationsA.groupby("ZIP5")["Offender Race"].agg({'SUM': 'sum', "MEAN": 'mean', "COUNT": 'count'})
 
 
     # Join with census data by zip
@@ -56,7 +56,6 @@ def runAddress(citations):
     zipJoin = zipJoin.query('COUNT>10')
 
     #Calculate two-sample difference of proportions
-
     zipJoin["DIFF_PROP_P"] = zipJoin.apply(lambda row: diffProp(row["SUM"],row["COUNT"],row["HC01_VC79"],row["HC01_VC03"]), axis=1)
 
     # Throw in the % black for each zip, by citations and census
