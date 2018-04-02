@@ -2,8 +2,9 @@
 from scipy import stats
 import numpy as np
 import Address_Analysis as addy
-import bootstrapped.bootstrap as bs
-import bootstrapped.stats_functions as bs_stats
+import matplotlib.pyplot as plt
+# import bootstrapped.bootstrap as bs
+# import bootstrapped.stats_functions as bs_stats
 
 filetype = ".csv"
 
@@ -25,10 +26,10 @@ def runBootstrap(citations):
     print("Citations mean: ", np.mean(samplesCitationList))
     print("Citations std: ", np.std(samplesCitationList))
 
-    ## Show histogram of citations bootstrap distribution
-    # count, bins, ignored = plt.hist(samplesCitationList, numBins)
-    # plt.title('Distribution of % Black Citations sample')
-    # plt.show()
+    # Show histogram of citations bootstrap distribution
+    count, bins, ignored = plt.hist(samplesCitationList, numBins)
+    plt.title('Distribution of % Black Citations sample')
+    plt.show()
 
     ### Census Distribution ###
     ## Load up Census data
