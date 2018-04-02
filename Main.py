@@ -10,8 +10,6 @@ import Bootstrap_Analysis as boot
 ##### Import and filtering #####
 
 ## Read in original CSV citations
-## Old filename: FerndaleCitations2009_2017
-## Sample data filename: FerndaleCitationsSample
 filename = "CitationsQuery2_complete"
 filetype = ".csv"
 
@@ -24,19 +22,24 @@ try:
 except (OSError, IOError) as e:
     rawData = pd.read_csv(filename + filetype, parse_dates=parseDates, header=0, low_memory=False)
     rawData.to_pickle(filename + ".pkl")
+
 citations = pd.DataFrame(rawData)
+## Deal with ambiguous 2-digit dates and '69 date epoch
+citations['BD_DATE']= citations['Offender Date of Birth'].str.split(' ').str[0]
+citations['BD_DATE']= pd.to_datetime(citations['BD_DATE'], format="%m/%d/%y")
+citations['BD_DATE']= citations['BD_DATE'].apply(lambda row: datetime.datetime(row.year - 100,row.month,row.day,0,0) if row.year > 2001 else row)
 
-## Do filtering on one year and export to csv
-# startYear = 2016
-# endYear = 2016
-# citations, citationsResults = filt.filterData(citations, startYear, endYear)
-# citations.to_csv(filename + "_filtered" + filetype)
+### Do filtering on one year and export to csv
+startYear = 2016
+endYear = 2016
+citations, citationsResults = filt.filterData(citations, startYear, endYear, gender="All", age=(0,99))
+citations.to_csv(filename + "_filtered" + filetype)
 
-## Run Bootstrap analysis
-citations, citationsResults = filt.filterData(citations, 2011, 2017)
-bootstrapResults = boot.runBootstrap(citations)
+### Run Bootstrap analysis
+# citations, citationsResults = filt.filterData(citations, 2011, 2017)
+# bootstrapResults = boot.runBootstrap(citations)
 
-## Write Veil of Darkness results to file for each year & all years
+### Write Veil of Darkness results to file for each year & all years
 # years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
 # resultsDF = pd.DataFrame()
 #
@@ -52,7 +55,7 @@ bootstrapResults = boot.runBootstrap(citations)
 # resultsDF.columns = columnsList
 # resultsDF.to_csv(filename + "_VoD_Results" + filetype)
 
-## Get Address Analysis percent black for each year & all years
+### Get Address Analysis percent black for each year & all years
 # years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
 # resultsDF = pd.DataFrame()
 # racePctYear = []

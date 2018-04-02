@@ -17,7 +17,7 @@ def runBootstrap(citations):
     numSamples = 70000
     numBins = 100
 
-    # # Get bootstrap sample for citations
+    ## Get bootstrap sample for citations
     for n in (range(numIterations)):
         sampleCitations = citations["Offender Race"].sample(n=numSamples, replace=True).values
         samplesCitationList.append(np.mean(sampleCitations))
@@ -25,17 +25,17 @@ def runBootstrap(citations):
     print("Citations mean: ", np.mean(samplesCitationList))
     print("Citations std: ", np.std(samplesCitationList))
 
-    # Show histogram of citations bootstrap distribution
+    ## Show histogram of citations bootstrap distribution
     # count, bins, ignored = plt.hist(samplesCitationList, numBins)
     # plt.title('Distribution of % Black Citations sample')
     # plt.show()
 
     ### Census Distribution ###
-    # Load up Census data
+    ## Load up Census data
     returnAddy = addy.runAddress(citations)
     returnAddy.reset_index(drop=True, inplace=True)
 
-    # Get bootstrap sample for census
+    ## Get bootstrap sample for census
     samplesCensusList = []
 
     for n in (range(numIterations)):
@@ -49,42 +49,15 @@ def runBootstrap(citations):
     print("Census mean: ", np.mean(samplesCensusList))
     print("Census std: ", np.std(samplesCensusList))
 
-    # Show histogram of census bootstrap distribution
+    ## Show histogram of census bootstrap distribution
     # count, bins, ignored = plt.hist(samplesCensusList, numBins)
     # plt.title('Distribution of % Black Census sample')
     # plt.show()
 
-    # Compare census to citation samples using Wilcoxon signed-rank test
+    ## Compare census to citation samples using Wilcoxon signed-rank test
     z_statistic, p_value = stats.wilcoxon(samplesCitationList, samplesCensusList)
 
     print("Results of Wilcoxon signed-rank test: ")
     print(p_value)
 
     return
-
-
-    ## Run bootstrap for census numberss
-    # Get census and sample zipcodes and percent black for each
-    # returnAddy = addy.runAddress(citations)
-
-    ## Plot distribution for census and sample zipcodes
-    # count, bins, ignored = plt.hist(returnAddy["BLACK_PCT_CENSUS"], 100)
-    # plt.title('Distribution of % Black for Census')
-    # plt.show()
-    #
-    # count, bins, ignored = plt.hist(returnAddy["BLACK_PCT_CITATIONS"], 100)
-    # plt.title('Distribution of % Black for Sample')
-    # plt.show()
-
-    # Get the sample count from citations
-    # sampleSize = returnAddy["COUNT"].sum()
-    # print("Sample Size from Citations: " + str(sampleSize))
-
-    # # Produce a sample population for census sample
-    # sampleCensus = returnAddy["BLACK_PCT_CENSUS"].sample(n=100000, replace=True).values
-    # # sampleCensus.reset_index(drop=True, inplace=True)
-    # samples = sampleCensus[:sampleSize]
-    #
-    # # Run bootstrap on sample size for census % black
-    # print(bs.bootstrap(samples, stat_func=bs_stats.mean))
-    # print(bs.bootstrap(samples, stat_func=bs_stats.std))

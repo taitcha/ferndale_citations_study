@@ -21,20 +21,20 @@ def addTimeZone(naiveDate):
 def runVeil(citations, filename):
     citationsV = citations.copy()
 
-    # Add timezone to datetime
+    ## Add timezone to datetime
     citationsV["Citation Date_x"] = citationsV["Citation Date_x"].apply(addTimeZone)
 
-    # Make Race binary (0 = W, 1 = B)
+    ## Make Race binary (0 = W, 1 = B)
     citationsV["Offender Race"] = citationsV.apply(lambda row: 0 if row["Offender Race"] == "W" else 1, axis=1)
 
-    # Add columns for Veil of Darkness analysis
+    ## Add columns for Veil of Darkness analysis
 
     a = Astral()
     a.solar_depression = 'civil'
     city = a["Detroit"]
     timezone = city.timezone
 
-    # Axis = 1 for rows, 0 for columns
+    ## Axis = 1 for rows, 0 for columns
     citationsV["DAWN"] = citationsV.apply(lambda row: city.sun(row['Citation Date_x'])['dawn'], axis=1)
     citationsV["SUNRISE"] = citationsV.apply(lambda row: city.sun(row['Citation Date_x'])['sunrise'], axis=1)
     citationsV["DUSK"] = citationsV.apply(lambda row: city.sun(row['Citation Date_x'])['dusk'], axis=1)
@@ -42,7 +42,7 @@ def runVeil(citations, filename):
     citationsV["WEEKDAY"] = citationsV.apply(lambda row: row['Citation Date_x'].weekday(), axis=1)
     citationsV["TIME"] = citationsV.apply(lambda row: row['Citation Date_x'].time(), axis=1)
 
-    # Mark if citation is during daytime
+    ## Mark if citation is during daytime
     def checkDaylight(row):
         if (row["Citation Date_x"].time() > row["SUNRISE"].time()) and (row["Citation Date_x"].time() < row["SUNSET"].time()):
             return True
@@ -51,7 +51,7 @@ def runVeil(citations, filename):
 
     citationsV["DAY_STRICT_FLAG"] = citationsV.apply(checkDaylight, axis=1)
 
-    # Compute range of dawn/dusk for the given range of values
+    ## Compute range of dawn/dusk for the given range of values
     earlySunrise = citationsV['SUNRISE'][0].time()
     lateSunrise = citationsV['SUNRISE'][0].time()
     earlySunset = citationsV['SUNSET'][0].time()
@@ -83,30 +83,30 @@ def runVeil(citations, filename):
 
     citationsV.to_csv(filename + "_VofD" + filetype)
 
-    # Filter to only the intertwilight period
+    ## Filter to only the intertwilight period
     citationsInt = citationsV.query("INTERTWILIGHT_FLAG == 'Intertwilight'")
 
-    # Fit GLM regression
+    ## Fit GLM regression
     formula = "citationsInt['Offender Race'] ~ WEEKDAY + DAY_STRICT_FLAG"
     result = smf.glm(formula=formula, family=sm.families.Binomial(), data=citationsInt).fit()
 
     print(result.params)
     print(result.summary())
 
-    # Calculate odds ratio between citation during day vs night
+    ## Calculate odds ratio between citation during day vs night
     ODDS_RATIO = np.exp(result.params["DAY_STRICT_FLAG[T.True]"])
     DAY_VEIL_P = result.pvalues["DAY_STRICT_FLAG[T.True]"]
     DAY_VEIL_STDERROR = result.bse["DAY_STRICT_FLAG[T.True]"]
     print("Odds Ratio (Day vs. Night): ", ODDS_RATIO)
 
-    # Calculate 95% confidence interval
+    ## Calculate 95% confidence interval
     DAY_VEIL_CONF_INT = result.conf_int()
     print("Confidence interval: ", DAY_VEIL_CONF_INT)
     print("Confidence interval: ", np.exp(DAY_VEIL_CONF_INT[0][1]), np.exp(DAY_VEIL_CONF_INT[1][1]))
 
-    # print("Confidence interval: ", result.params["DAY_STRICT_FLAG[T.True]"].low())
+    ## print("Confidence interval: ", result.params["DAY_STRICT_FLAG[T.True]"].low())
 
-    # Calculate percent black
+    ## Calculate percent black
     blackCountDay = 0
     blackCountNight = 0
     totalDay = 0
@@ -127,14 +127,14 @@ def runVeil(citations, filename):
     print("Black Count Day: ", blackCountDay, "/", totalDay, round(blackCountDay/totalDay,2), "%")
     print("Black Count Night: ", blackCountNight, "/", totalNight, round(blackCountNight/totalNight,2), "%")
 
-    # Calculate two-sample difference of proportions test
+    ## Calculate two-sample difference of proportions test
     count = np.array([blackCountDay, blackCountNight])
     nobs = np.array([totalDay, totalNight])
     z1, pval = sm.stats.proportions_ztest(count, nobs)
     TWO_SAMPLE_DIFF = pval
     print("Two-sample difference of proportions: ", '{0:0.7f}'.format(pval))
 
-    # Visualize in 15-minute increments
+    ## Visualize in 15-minute increments
     date = datetime.date(2011, 1, 1)
     citationsInt["SAMEDATE"] = citationsInt.apply(lambda row: datetime.datetime.combine(date,row['Citation Date_x'].time()), axis=1)
     timeindexDay = citationsInt[citationsInt["DAY_STRICT_FLAG"]==True]
@@ -160,8 +160,8 @@ def runVeil(citations, filename):
 
 
 
-    # Plot regression line
-    # sns.regplot(citations['CITATION_DT'],citations["OFF_RACE_CD"])
+    ## Plot regression line
+    # sns.regplot(citations['Citation Date_x'],citations["Offender Race"])
     # plt.show()
 
     return [earlySunset, lateSunset, ODDS_RATIO,DAY_VEIL_P,DAY_VEIL_STDERROR,blackCountDay,blackCountNight,totalDay,totalNight,BLACK_PCT_DAY,BLACK_PCT_NIGHT,TWO_SAMPLE_DIFF]
