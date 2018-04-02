@@ -29,15 +29,15 @@ citations['BD_DATE']= citations['Offender Date of Birth'].str.split(' ').str[0]
 citations['BD_DATE']= pd.to_datetime(citations['BD_DATE'], format="%m/%d/%y")
 citations['BD_DATE']= citations['BD_DATE'].apply(lambda row: datetime.datetime(row.year - 100,row.month,row.day,0,0) if row.year > 2001 else row)
 
-### Do filtering on one year and export to csv
-startYear = 2016
-endYear = 2016
-citations, citationsResults = filt.filterData(citations, startYear, endYear, gender="All", age=(0,99))
-citations.to_csv(filename + "_filtered" + filetype)
+# ### Do filtering on one year and export to csv
+# startYear = 2016
+# endYear = 2016
+# citations, citationsResults = filt.filterData(citations, startYear, endYear, gender="All", age=(0,99))
+# citations.to_csv(filename + "_filtered" + filetype)
 
-## Run Bootstrap analysis
-citations, citationsResults = filt.filterData(citations, 2011, 2017)
-bootstrapResults = boot.runBootstrap(citations)
+# ## Run Bootstrap analysis
+# citations, citationsResults = filt.filterData(citations, 2011, 2017)
+# bootstrapResults = boot.runBootstrap(citations)
 
 # ## Write Veil of Darkness results to file for each year & all years
 # years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
