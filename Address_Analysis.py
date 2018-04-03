@@ -71,8 +71,6 @@ def runAddress(citations):
     zipJoin["BLACK_PCT_CITATIONS"] = zipJoin.apply(lambda row: row["SUM"]/row["COUNT"], axis=1)
     zipJoin["BLACK_PCT_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_VEH_CENSUS"]/row["HC01_EST_VC01"], axis=1)
 
-
-    zipJoin.to_csv("whatthe.csv")
     return zipJoin
 
     ##### RAW POPULATION CENSUS DATA CODE #####
