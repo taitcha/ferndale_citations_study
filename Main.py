@@ -56,33 +56,33 @@ citations['BD_DATE']= citations['BD_DATE'].apply(lambda row: datetime.datetime(r
 # resultsDF.to_csv(filename + "_VoD_Results" + filetype)
 
 ## Get Address Analysis percent black for each year & all years
-# years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
-# resultsDF = pd.DataFrame()
-# racePctYear = []
+years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
+resultsDF = pd.DataFrame()
+racePctYear = []
 
-# for year in years:
-#     citations = pd.DataFrame(rawData)
-#     citations, citationsResults = filt.filterData(citations, year[0], year[1])
+for year in years:
+    citations = pd.DataFrame(rawData)
+    citations, citationsResults = filt.filterData(citations, year[0], year[1])
 
-#     raceCount = citations["Offender Race"].value_counts()
-#     returnAddy = addy.runAddress(citations)
-#     addyResults = []
-#     addyResults.extend([year])
-#     ## Total black drivers divided by total citations
-#     addyResults.extend([returnAddy["SUM"].sum() / returnAddy["COUNT"].sum()])
-#     ## Total black people (census) divided by total population (census)
-#     addyResults.extend([returnAddy["HC01_VC79"].sum() / returnAddy["HC01_VC03"].sum()])
-#     ## Expected total black people (percent of Zip that's black (census), times total number of citations for that zip) divided by total number of citations
-#     addyResults.extend([(returnAddy["BLACK_PCT_CENSUS"] * returnAddy["COUNT"]).sum() / returnAddy["COUNT"].sum()])
-#     # Percentage point difference from observed percent black (citations) to expected percent black (census)
-#     addyResults.extend([addyResults[1]-addyResults[3]])
-#     # Calculate two-sample difference of proportions test
-#     count = np.array([returnAddy["SUM"].sum(), returnAddy["HC01_VC79"].sum()])
-#     nobs = np.array([returnAddy["COUNT"].sum(), returnAddy["HC01_VC03"].sum()])
-#     z1, pval = sm.stats.proportions_ztest(count, nobs)
-#     addyResults.extend([pval])
-#     resultsDF = resultsDF.append([addyResults])
+    raceCount = citations["Offender Race"].value_counts()
+    returnAddy = addy.runAddress(citations)
+    addyResults = []
+    addyResults.extend([year])
+    ## Total black drivers divided by total citations
+    addyResults.extend([returnAddy["SUM"].sum() / returnAddy["COUNT"].sum()])
+    ## Total black people (census) divided by total population (census)
+    addyResults.extend([returnAddy["BLACK_POP_VEH_CENSUS"].sum() / returnAddy["HC01_EST_VC01"].sum()])
+    ## Expected total black people (percent of Zip that's black (census), times total number of citations for that zip) divided by total number of citations
+    addyResults.extend([(returnAddy["BLACK_PCT_CENSUS"] * returnAddy["COUNT"]).sum() / returnAddy["COUNT"].sum()])
+    # Percentage point difference from observed percent black (citations) to expected percent black (census)
+    addyResults.extend([addyResults[1]-addyResults[3]])
+    # Calculate two-sample difference of proportions test
+    count = np.array([returnAddy["SUM"].sum(), returnAddy["BLACK_POP_VEH_CENSUS"].sum()])
+    nobs = np.array([returnAddy["COUNT"].sum(), returnAddy["HC01_EST_VC01"].sum()])
+    z1, pval = sm.stats.proportions_ztest(count, nobs)
+    addyResults.extend([pval])
+    resultsDF = resultsDF.append([addyResults])
 
-# columnsList = ['YEAR','BLACK_PCT','WEIGHT_BLACK_PCT_CENSUS','WEIGHT_BLACK_PCT_CENSUS_BY_CITATION','PCT_DIFF','PVAL']
-# resultsDF.columns = columnsList
-# resultsDF.to_csv("addy_Results" + filetype)
+columnsList = ['YEAR','BLACK_PCT_CITATIONS','WEIGHT_BLACK_PCT_CENSUS','WEIGHT_BLACK_PCT_CENSUS_BY_CITATION','PCT_DIFF','PVAL']
+resultsDF.columns = columnsList
+resultsDF.to_csv("addy_Results" + filetype)

@@ -19,7 +19,7 @@ def diffProp(firstIn,firstTot,secondIn,secondTot):
     nobs = np.array([firstTot, secondTot])
     z1, pval = sm.stats.proportions_ztest(count, nobs)
     # print("Two-sample difference of proportions: ", '{0:0.7f}'.format(pval))
-    return round(pval,5)
+    return round(pval,6)
 
 def runAddress(citations):
     citationsA = citations.copy()
@@ -32,34 +32,71 @@ def runAddress(citations):
     ## Calculate percent black
     groupZip = citationsA.groupby("ZIP5")["Offender Race"].agg({'SUM': 'sum', "MEAN": 'mean', "COUNT": 'count'})
 
-
     ## Join with census data by zip
-    filenameCensus = "ACS_16_5YR_DP05_with_ann"
+    filenameCensus = "ACS_16_5YR_S0802_with_ann"
     filetype = ".csv"
 
     censusData = pd.read_csv(filenameCensus + filetype, header=0,skiprows=[1])
     censusData.rename(columns={'GEO.id2': 'ZIP5'}, inplace=True)
     censusData = censusData.set_index('ZIP5')
 
+    censusData.replace("-","",inplace=True)
+
     zipJoin = groupZip.merge(censusData, left_index=True, right_index=True)
 
     zipJoin = zipJoin.filter(["SUM",
                               "MEAN",
                               "COUNT",
-                              "HC01_VC03","HC02_VC03",
-                              "HC01_VC50","HC02_VC50",
-                              "HC03_VC50","HC04_VC50",
-                              "HC01_VC79","HC02_VC79",
-                              "HC03_VC79","HC04_VC79"])
+                              "HC01_EST_VC01","HC01_EST_VC19",
+                              "HC01_EST_VC18","HC01_EST_VC126"])
 
-    ## Filter out low-count zip codes
-    zipJoin = zipJoin.query('COUNT>10')
+    ## Filter out low-citation-count zip codes
+    zipJoin = zipJoin.query('COUNT>30')
+
+    ## Make sure it's all floats rather than strings
+    zipJoin = zipJoin.astype(float)
+
+    ## Calculate total black & white populations per ZIP (one race)
+    zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC19"]/100), axis=1)
+    zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC18"]/100), axis=1)
+
+    ## Calculate total black & white with access to vehicle
+    zipJoin["BLACK_POP_VEH_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"]*(1-(row["HC01_EST_VC126"]/100)), axis=1)
+    zipJoin["WHITE_POP_VEH_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_CENSUS"]*(1-(row["HC01_EST_VC126"]/100)), axis=1)
 
     ## Calculate two-sample difference of proportions
-    zipJoin["DIFF_PROP_P"] = zipJoin.apply(lambda row: diffProp(row["SUM"],row["COUNT"],row["HC01_VC79"],row["HC01_VC03"]), axis=1)
+    zipJoin["DIFF_PROP_P"] = zipJoin.apply(lambda row: diffProp(row["SUM"],row["COUNT"],row["BLACK_POP_VEH_CENSUS"],row["HC01_EST_VC01"]), axis=1)
 
     ## Throw in the % black for each zip, by citations and census
     zipJoin["BLACK_PCT_CITATIONS"] = zipJoin.apply(lambda row: row["SUM"]/row["COUNT"], axis=1)
-    zipJoin["BLACK_PCT_CENSUS"] = zipJoin.apply(lambda row: row["HC01_VC79"]/row["HC01_VC03"], axis=1)
+    zipJoin["BLACK_PCT_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_VEH_CENSUS"]/row["HC01_EST_VC01"], axis=1)
 
+
+    zipJoin.to_csv("whatthe.csv")
     return zipJoin
+
+    ##### RAW POPULATION CENSUS DATA CODE #####
+    # ## Join with census data by zip
+    # filenameCensus = "ACS_16_5YR_DP05_with_ann"
+    # filetype = ".csv"
+    #
+    # censusData = pd.read_csv(filenameCensus + filetype, header=0,skiprows=[1])
+    # censusData.rename(columns={'GEO.id2': 'ZIP5'}, inplace=True)
+    # censusData = censusData.set_index('ZIP5')
+    #
+    # zipJoin = groupZip.merge(censusData, left_index=True, right_index=True)
+    #
+    # zipJoin = zipJoin.filter(["SUM",
+    #                           "MEAN",
+    #                           "COUNT",
+    #                           "HC01_VC03","HC02_VC03",
+    #                           "HC01_VC50","HC02_VC50",
+    #                           "HC03_VC50","HC04_VC50",
+    #                           "HC01_VC79","HC02_VC79",
+    #                           "HC03_VC79","HC04_VC79"])
+    #
+    # ## Calculate two-sample difference of proportions
+    # zipJoin["DIFF_PROP_P"] = zipJoin.apply(lambda row: diffProp(row["SUM"],row["COUNT"],row["HC01_VC79"],row["HC01_VC03"]), axis=1)
+    #
+    # zipJoin["BLACK_PCT_CENSUS"] = zipJoin.apply(lambda row: row["HC01_VC79"] / row["HC01_VC03"], axis=1)
+    ##### END RAW POPULATION CENSUS DATA CODE #####
