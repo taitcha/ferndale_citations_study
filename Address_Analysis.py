@@ -40,7 +40,10 @@ def runAddress(citations):
     censusData.rename(columns={'GEO.id2': 'ZIP5'}, inplace=True)
     censusData = censusData.set_index('ZIP5')
 
-    censusData.replace("-","",inplace=True)
+    ## Get rid of non-numeric values
+    censusData.replace("-",0,inplace=True)
+    censusData.replace("**", 0, inplace=True)
+    censusData.replace("(X)", 0, inplace=True)
 
     zipJoin = groupZip.merge(censusData, left_index=True, right_index=True)
 
@@ -50,8 +53,8 @@ def runAddress(citations):
                               "HC01_EST_VC01","HC01_EST_VC19",
                               "HC01_EST_VC18","HC01_EST_VC126"])
 
-    ## Filter out low-citation-count zip codes
-    zipJoin = zipJoin.query('COUNT>30')
+    ## Filter out low-citation-count zip codes if desired
+    # zipJoin = zipJoin.query('COUNT>30')
 
     ## Make sure it's all floats rather than strings
     zipJoin = zipJoin.astype(float)

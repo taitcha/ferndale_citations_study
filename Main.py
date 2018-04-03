@@ -35,25 +35,25 @@ citations['BD_DATE']= citations['BD_DATE'].apply(lambda row: datetime.datetime(r
 # citations, citationsResults = filt.filterData(citations, startYear, endYear, gender="All", age=(0,99))
 # citations.to_csv(filename + "_filtered" + filetype)
 
-# ## Run Bootstrap analysis
+## Run Bootstrap analysis
 # citations, citationsResults = filt.filterData(citations, 2011, 2017)
 # bootstrapResults = boot.runBootstrap(citations)
 
-# ## Write Veil of Darkness results to file for each year & all years
-# years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
-# resultsDF = pd.DataFrame()
+## Write Veil of Darkness results to file for each year & all years
+years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
+resultsDF = pd.DataFrame()
 
-# for year in years:
-#     citations = pd.DataFrame(rawData)
-#     citations, citationsResults = filt.filterData(citations, year[0], year[1])
-#     returnVeil = veil.runVeil(citations, filename)
-#     citationsResults.extend(returnVeil)
-#     citationsResults.extend([year])
-#     resultsDF = resultsDF.append([citationsResults])
+for year in years:
+    citations = pd.DataFrame(rawData)
+    citations, citationsResults = filt.filterData(citations, year[0], year[1], gender="All", age=(0,150))
+    returnVeil = veil.runVeil(citations, filename)
+    citationsResults.extend(returnVeil)
+    citationsResults.extend([year])
+    resultsDF = resultsDF.append([citationsResults])
 
-# columnsList = ['PARK_VIOL_EXCL', 'RACE_EXCL','RACE_B','RACE_W','RACE_A','RACE_U','RACE_I','BLANK_EXCL','MI_EXCL','DATE_EXCL','TOTAL_EXCL','TOTAL_FILT','EARLY_SUNSET','LATE_SUNSET','ODDS_RATIO','DAY_VEIL_P','DAY_VEIL_STDERROR','BLACK_CNT_DAY','BLACK_CNT_NIGHT','TOTAL_DAY','TOTAL_NIGHT','BLACK_PCT_DAY','BLACK_PCT_NIGHT','TWO_SAMPLE_DIFF',"YEAR"]
-# resultsDF.columns = columnsList
-# resultsDF.to_csv(filename + "_VoD_Results" + filetype)
+columnsList = ['PARK_VIOL_EXCL', 'RACE_EXCL','RACE_B','RACE_W','RACE_A','RACE_U','RACE_I','BLANK_EXCL','MI_EXCL','DATE_EXCL','TOTAL_EXCL','TOTAL_FILT','EARLY_SUNSET','LATE_SUNSET','ODDS_RATIO','DAY_VEIL_P','DAY_VEIL_STDERROR','BLACK_CNT_DAY','BLACK_CNT_NIGHT','TOTAL_DAY','TOTAL_NIGHT','BLACK_PCT_DAY','BLACK_PCT_NIGHT','TWO_SAMPLE_DIFF',"YEAR"]
+resultsDF.columns = columnsList
+resultsDF.to_csv(filename + "_VoD_Results" + filetype)
 
 ## Get Address Analysis percent black for each year & all years
 years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
@@ -62,7 +62,7 @@ racePctYear = []
 
 for year in years:
     citations = pd.DataFrame(rawData)
-    citations, citationsResults = filt.filterData(citations, year[0], year[1])
+    citations, citationsResults = filt.filterData(citations, year[0], year[1], gender="All", age=(0,150))
 
     raceCount = citations["Offender Race"].value_counts()
     returnAddy = addy.runAddress(citations)
