@@ -21,7 +21,7 @@ def diffProp(firstIn,firstTot,secondIn,secondTot):
     # print("Two-sample difference of proportions: ", '{0:0.7f}'.format(pval))
     return round(pval,6)
 
-def runAddress(citations):
+def runAddress(citations, gender="All", age="All"):
     citationsA = citations.copy()
     ## Convert W to 0, B to 1 to make processing race stats easier
     citationsA["Offender Race"] = citationsA.apply(lambda row: 0 if row["Offender Race"] == "W" else 1, axis=1)
@@ -51,7 +51,9 @@ def runAddress(citations):
                               "MEAN",
                               "COUNT",
                               "HC01_EST_VC01","HC01_EST_VC19",
-                              "HC01_EST_VC18","HC01_EST_VC126"])
+                              "HC01_EST_VC18","HC01_EST_VC126",
+                              "HC01_EST_VC13","HC01_EST_VC14",
+                              "HC01_EST_VC03","HC01_EST_VC04"])
 
     ## Filter out low-citation-count zip codes if desired
     # zipJoin = zipJoin.query('COUNT>30')
@@ -62,17 +64,40 @@ def runAddress(citations):
     ## Calculate total black & white populations per ZIP (one race)
     zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC19"]/100), axis=1)
     zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC18"]/100), axis=1)
+    zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"], axis=1)
+
+    ## Adjust census numbers if gender filter is on
+    if gender == "Male":
+        zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"] * (row["HC01_EST_VC13"]/100), axis=1)
+        zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_CENSUS"] * (row["HC01_EST_VC13"]/100), axis=1)
+        zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC13"]/100), axis=1)
+    elif gender == "Female":
+        zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"] * (row["HC01_EST_VC14"]/100), axis=1)
+        zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_CENSUS"] * (row["HC01_EST_VC14"]/100), axis=1)
+        zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["TOTAL_POP_CENSUS"] * (row["HC01_EST_VC14"]/100), axis=1)
+
+    ## Adjust census numbers if age filter is on (young== 16-24, old==25+)
+    if age == "Young":
+        zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"] * ((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100), axis=1)
+        zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_CENSUS"] * ((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100), axis=1)
+        zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["TOTAL_POP_CENSUS"] * ((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100), axis=1)
+    elif age == "Old":
+        zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"] * (1-((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100)), axis=1)
+        zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_CENSUS"] * (1-((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100)), axis=1)
+        zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["TOTAL_POP_CENSUS"] * (1-((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100)), axis=1)
 
     ## Calculate total black & white with access to vehicle
     zipJoin["BLACK_POP_VEH_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"]*(1-(row["HC01_EST_VC126"]/100)), axis=1)
     zipJoin["WHITE_POP_VEH_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_CENSUS"]*(1-(row["HC01_EST_VC126"]/100)), axis=1)
 
     ## Calculate two-sample difference of proportions
-    zipJoin["DIFF_PROP_P"] = zipJoin.apply(lambda row: diffProp(row["SUM"],row["COUNT"],row["BLACK_POP_VEH_CENSUS"],row["HC01_EST_VC01"]), axis=1)
+    zipJoin["DIFF_PROP_P"] = zipJoin.apply(lambda row: diffProp(row["SUM"],row["COUNT"],row["BLACK_POP_VEH_CENSUS"],row["TOTAL_POP_CENSUS"]), axis=1)
 
     ## Throw in the % black for each zip, by citations and census
     zipJoin["BLACK_PCT_CITATIONS"] = zipJoin.apply(lambda row: row["SUM"]/row["COUNT"], axis=1)
-    zipJoin["BLACK_PCT_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_VEH_CENSUS"]/row["HC01_EST_VC01"], axis=1)
+    zipJoin["BLACK_PCT_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_VEH_CENSUS"]/row["TOTAL_POP_CENSUS"], axis=1)
+
+
 
     return zipJoin
 
