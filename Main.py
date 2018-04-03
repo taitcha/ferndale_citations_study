@@ -29,7 +29,7 @@ citations['BD_DATE']= citations['Offender Date of Birth'].str.split(' ').str[0]
 citations['BD_DATE']= pd.to_datetime(citations['BD_DATE'], format="%m/%d/%y")
 citations['BD_DATE']= citations['BD_DATE'].apply(lambda row: datetime.datetime(row.year - 100,row.month,row.day,0,0) if row.year > 2001 else row)
 
-## Filtering criteria
+## Filtering criteria Male/Female/All, age in years, All/Young/Old
 gender = "Female"
 age = (0,150)
 ageCategory="All"
