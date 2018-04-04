@@ -63,31 +63,25 @@ def runAddress(citations, gender="All", age="All"):
     zipFieldlist = ["BLACK_POP_CENSUS","WHITE_POP_CENSUS","TOTAL_POP_CENSUS"]
 
     ## Calculate total black & white populations per ZIP (one race)
-    for field in zipFieldlist:
-        zipJoin[field] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC19"]/100), axis=1)
-    # zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC19"]/100), axis=1)
-    # zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC18"]/100), axis=1)
-    # zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"], axis=1)
+    zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC19"]/100), axis=1)
+    zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC18"]/100), axis=1)
+    zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"], axis=1)
 
     ## Adjust census numbers if gender filter is on
     if gender == "Male":
-        zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"] * (row["HC01_EST_VC13"]/100), axis=1)
-        zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_CENSUS"] * (row["HC01_EST_VC13"]/100), axis=1)
-        zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC13"]/100), axis=1)
+        for field in zipFieldlist:
+            zipJoin[field] = zzipJoin.apply(lambda row: row[field] * (row["HC01_EST_VC13"]/100), axis=1)
     elif gender == "Female":
-        zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"] * (row["HC01_EST_VC14"]/100), axis=1)
-        zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_CENSUS"] * (row["HC01_EST_VC14"]/100), axis=1)
-        zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["TOTAL_POP_CENSUS"] * (row["HC01_EST_VC14"]/100), axis=1)
+        for field in zipFieldlist:
+            zipJoin[field] = zzipJoin.apply(lambda row: row[field] * (row["HC01_EST_VC14"]/100), axis=1)
 
     ## Adjust census numbers if age filter is on (young== 16-24, old==25+)
     if age == "Young":
-        zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"] * ((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100), axis=1)
-        zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_CENSUS"] * ((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100), axis=1)
-        zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["TOTAL_POP_CENSUS"] * ((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100), axis=1)
+        for field in zipFieldlist:
+            zipJoin[field] = zipJoin.apply(lambda row: row[field] * ((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100), axis=1)
     elif age == "Old":
-        zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"] * (1-((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100)), axis=1)
-        zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_CENSUS"] * (1-((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100)), axis=1)
-        zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["TOTAL_POP_CENSUS"] * (1-((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100)), axis=1)
+        for field in zipFieldlist:
+            zipJoin[field] = zipJoin.apply(lambda row: row[field] * (1-((row["HC01_EST_VC03"]+row["HC01_EST_VC04"])/100)), axis=1)
 
     ## Calculate total black & white with access to vehicle
     zipJoin["BLACK_POP_VEH_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_CENSUS"]*(1-(row["HC01_EST_VC126"]/100)), axis=1)
@@ -99,8 +93,6 @@ def runAddress(citations, gender="All", age="All"):
     ## Throw in the % black for each zip, by citations and census
     zipJoin["BLACK_PCT_CITATIONS"] = zipJoin.apply(lambda row: row["SUM"]/row["COUNT"], axis=1)
     zipJoin["BLACK_PCT_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_VEH_CENSUS"]/row["TOTAL_POP_CENSUS"], axis=1)
-
-
 
     return zipJoin
 
