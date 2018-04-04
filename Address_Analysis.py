@@ -60,11 +60,14 @@ def runAddress(citations, gender="All", age="All"):
 
     ## Make sure it's all floats rather than strings
     zipJoin = zipJoin.astype(float)
+    zipFieldlist = ["BLACK_POP_CENSUS","WHITE_POP_CENSUS","TOTAL_POP_CENSUS"]
 
     ## Calculate total black & white populations per ZIP (one race)
-    zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC19"]/100), axis=1)
-    zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC18"]/100), axis=1)
-    zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"], axis=1)
+    for field in zipFieldlist:
+        zipJoin[field] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC19"]/100), axis=1)
+    # zipJoin["BLACK_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC19"]/100), axis=1)
+    # zipJoin["WHITE_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"] * (row["HC01_EST_VC18"]/100), axis=1)
+    # zipJoin["TOTAL_POP_CENSUS"] = zipJoin.apply(lambda row: row["HC01_EST_VC01"], axis=1)
 
     ## Adjust census numbers if gender filter is on
     if gender == "Male":
