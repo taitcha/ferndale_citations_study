@@ -73,10 +73,16 @@ def censusBenchmark(years):
         addyResults.extend([returnAddy["SUM"].sum() / returnAddy["COUNT"].sum()])
         ## Total black people (census) divided by total population (census)
         addyResults.extend([returnAddy["BLACK_POP_VEH_CENSUS"].sum() / returnAddy["TOTAL_POP_CENSUS"].sum()])
+        ## Total white people (census) divided by total population (census)
+        addyResults.extend([returnAddy["WHITE_POP_VEH_CENSUS"].sum() / returnAddy["TOTAL_POP_CENSUS"].sum()])
         ## Expected total black people (percent of Zip that's black (census), times total number of citations for that zip) divided by total number of citations
         addyResults.extend([(returnAddy["BLACK_PCT_CENSUS"] * returnAddy["COUNT"]).sum() / returnAddy["COUNT"].sum()])
+        ## Expected total white people (percent of Zip that's black (census), times total number of citations for that zip) divided by total number of citations
+        addyResults.extend([(returnAddy["WHITE_PCT_CENSUS"] * returnAddy["COUNT"]).sum() / returnAddy["COUNT"].sum()])
         # Percentage point difference from observed percent black (citations) to expected percent black (census)
-        addyResults.extend([addyResults[1]-addyResults[3]])
+        addyResults.extend([addyResults[1]-addyResults[4]])
+        # Percentage point difference from observed percent white (citations) to expected percent white (census)
+        addyResults.extend([(1-addyResults[1])-addyResults[5]])
         # Calculate two-sample difference of proportions test
         count = np.array([returnAddy["SUM"].sum(), returnAddy["BLACK_POP_VEH_CENSUS"].sum()])
         nobs = np.array([returnAddy["COUNT"].sum(), returnAddy["TOTAL_POP_CENSUS"].sum()])
@@ -84,14 +90,14 @@ def censusBenchmark(years):
         addyResults.extend([pval])
         resultsDF = resultsDF.append([addyResults])
 
-    columnsList = ['YEAR','BLACK_PCT_CITATIONS','WEIGHT_BLACK_PCT_CENSUS','WEIGHT_BLACK_PCT_CENSUS_BY_CITATION','PCT_DIFF','PVAL']
+    columnsList = ['YEAR','BLACK_PCT_CITATIONS','BLACK_PCT_CENSUS','WHITE_PCT_CENSUS','WEIGHT_BLACK_PCT_CENSUS','WEIGHT_WHITE_PCT_CENSUS','BLACK_PCT_DIFF','WHITE_PCT_DIFF','BLACK_PVAL']
     resultsDF.columns = columnsList
     resultsDF.to_csv(filename + "_census_Results" + filetype)
 
 ## Filtering criteria Male/Female/All, age in years, All/Young(16-24)/Old(25+)
 gender = "All"
-age = (25,150)
-ageCategory="Old"
+age = (0,150)
+ageCategory="All"
 years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
 
 ## Filtering on one year
