@@ -1,5 +1,6 @@
 import datetime
 import pandas as pd
+# import matplotlib.pyplot as plt
 
 def filterData(citations, startYear, endYear, gender="All", age=(0,150)):
     ## Track how many citations the previous filters already took out
@@ -50,6 +51,7 @@ def filterData(citations, startYear, endYear, gender="All", age=(0,150)):
     ## Plot raceCount
     # raceCount.plot.bar()
     # plt.show()
+    # plt.close()
 
     ## Exclude rows that have blanks for Race, Sex, Address, City, State, Zip, DOB
     citationsF = citationsF[~citationsF['Offender Race'].isnull()

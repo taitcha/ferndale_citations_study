@@ -32,8 +32,9 @@ citations['BD_DATE']= citations['BD_DATE'].apply(lambda row: datetime.datetime(r
 # ### Do filtering and export to csv
 def filterResults(years):
     for year in years:
+        citations = pd.DataFrame(rawData)
         citations, citationsResults = filt.filterData(citations, year[0], year[1], gender="All", age=(0,99))
-        citations.to_csv(filename + "_filtered" + year + filetype)
+        citations.to_csv(filename + "_filtered" + year[0] +"_"+ year[1] + filetype)
 
 ## Run Bootstrap analysis
 def bootstrapAnalysis():
@@ -98,7 +99,8 @@ def censusBenchmark(years):
 gender = "All"
 age = (0,150)
 ageCategory="All"
-years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
+# years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
+years=[(2011,2017)]
 
 ## Filtering on one year
 # filterResults(years)

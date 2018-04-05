@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astral import Astral
 import pytz
+# import seaborn as sns
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -157,11 +158,11 @@ def runVeil(citations, filename):
     sampleDayNight.plot(figsize=(8,5))
     plt.xlabel('Percent stops of black drivers, daylight and darkness')
     # plt.show()
+    # plt.close()
 
-
-
-    ## Plot regression line
-    # sns.regplot(citations['Citation Date_x'],citations["Offender Race"])
+    # # Plot regression line
+    # sns.regplot(x='Citation Date_x', y="Offender Race", data=citations)
     # plt.show()
+    # plt.close()
 
     return [earlySunset, lateSunset, ODDS_RATIO,DAY_VEIL_P,DAY_VEIL_STDERROR,blackCountDay,blackCountNight,totalDay,totalNight,BLACK_PCT_DAY,BLACK_PCT_NIGHT,TWO_SAMPLE_DIFF]
