@@ -48,7 +48,7 @@ def veilAnalysis(years):
     for year in years:
         citations = pd.DataFrame(rawData)
         citations, citationsResults = filt.filterData(citations, year[0], year[1], gender=gender, age=age)
-        returnVeil = veil.runVeil(citations, filename)
+        returnVeil = veil.runVeil(citations, filename, year)
         citationsResults.extend(returnVeil)
         citationsResults.extend([year])
         resultsDF = resultsDF.append([citationsResults])
@@ -100,7 +100,7 @@ gender = "All"
 age = (0,150)
 ageCategory="All"
 # years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
-years=[(2011,2017)]
+years=[(2016,2016)]
 
 ## Filtering on one year
 # filterResults(years)

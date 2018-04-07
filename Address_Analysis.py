@@ -6,6 +6,7 @@ import statsmodels.formula.api as smf
 import numpy as np
 import matplotlib.pyplot as plt
 
+filename = "CitationsQuery2_complete"
 filetype = ".csv"
 
 def isolateZip(citation):
@@ -94,6 +95,8 @@ def runAddress(citations, gender="All", age="All"):
     zipJoin["BLACK_PCT_CITATIONS"] = zipJoin.apply(lambda row: row["SUM"]/row["COUNT"], axis=1)
     zipJoin["BLACK_PCT_CENSUS"] = zipJoin.apply(lambda row: row["BLACK_POP_VEH_CENSUS"]/row["TOTAL_POP_CENSUS"], axis=1)
     zipJoin["WHITE_PCT_CENSUS"] = zipJoin.apply(lambda row: row["WHITE_POP_VEH_CENSUS"]/row["TOTAL_POP_CENSUS"], axis=1)
+
+    zipJoin.to_csv(filename + "_zipJoin" + filetype)
 
     return zipJoin
 

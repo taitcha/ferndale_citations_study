@@ -1,6 +1,6 @@
 import datetime
 import pandas as pd
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 def filterData(citations, startYear, endYear, gender="All", age=(0,150)):
     ## Track how many citations the previous filters already took out
@@ -21,15 +21,23 @@ def filterData(citations, startYear, endYear, gender="All", age=(0,150)):
     print("Number of Parking violations excluded: ", PARK_VIOL_EXCL)
     countFiltered += PARK_VIOL_EXCL
 
+    raceCount = citationsF["Offender Race"].value_counts()
+    colors = [(86 / 255, 129 / 255, 194 / 255)]
+    raceCount.plot.bar(color=colors)
+    plt.show()
+    plt.close()
+    print("Race Counts: ")
+    print(raceCount)
+
     ## Exclude citations that don't include race of driver (blank or "U" for unknown, "A" for Asian, "I" for Indian since there's so few)
     citationsF = citationsF[(citationsF['Offender Race'] != "U")
                                & (citationsF['Offender Race'] != "A")
                                & (citationsF['Offender Race'] != "I")]
     RACE_EXCL = (len(citations.index) - len(citationsF.index))-countFiltered
-    print("Number of Race (Unknown, or Asian) excluded: ", RACE_EXCL)
+    print("Number of Race (Unknown, Asian, Indian) excluded: ", RACE_EXCL)
     countFiltered += RACE_EXCL
 
-    raceCount = citations["Offender Race"].value_counts()
+    raceCount = citationsF["Offender Race"].value_counts()
     RACE_B = raceCount["B"]
     RACE_W = raceCount["W"]
     try:
@@ -45,11 +53,12 @@ def filterData(citations, startYear, endYear, gender="All", age=(0,150)):
     except:
         RACE_I = 0
 
-    print("Original Race Counts: ")
+    print("Final Race Counts: ")
     print(raceCount)
 
     ## Plot raceCount
-    # raceCount.plot.bar()
+    # colors = [(86 / 255, 129 / 255, 194 / 255), (222 / 255, 113 / 255, 38 / 255)]
+    # raceCount.plot.bar(color=colors)
     # plt.show()
     # plt.close()
 
@@ -98,4 +107,5 @@ def filterData(citations, startYear, endYear, gender="All", age=(0,150)):
     TOTAL_EXCL = len(citations.index)-len(citationsF.index)
     TOTAL_FILT = len(citationsF.index)
     print("Total filtered: ", TOTAL_EXCL, " out of ", len(citations.index), " records, ", TOTAL_FILT, " total remain")
+
     return citationsF, [PARK_VIOL_EXCL,RACE_EXCL,RACE_B,RACE_W,RACE_A,RACE_U,RACE_I,BLANK_EXCL,MI_EXCL,DATE_EXCL,TOTAL_EXCL,TOTAL_FILT]

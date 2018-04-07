@@ -19,7 +19,7 @@ def addTimeZone(naiveDate):
     newDate = local.localize(naiveDate)
     return newDate
 
-def runVeil(citations, filename):
+def runVeil(citations, filename, year):
     citationsV = citations.copy()
 
     ## Add timezone to datetime
@@ -136,7 +136,7 @@ def runVeil(citations, filename):
     print("Two-sample difference of proportions: ", '{0:0.7f}'.format(pval))
 
     ## Visualize in 15-minute increments
-    date = datetime.date(2011, 1, 1)
+    date = datetime.date(year[0], 1, 1)
     citationsInt["SAMEDATE"] = citationsInt.apply(lambda row: datetime.datetime.combine(date,row['Citation Date_x'].time()), axis=1)
     timeindexDay = citationsInt[citationsInt["DAY_STRICT_FLAG"]==True]
     timeindexDay = timeindexDay.filter(["SAMEDATE","Offender Race","DAY_STRICT_FLAG"])
@@ -153,11 +153,18 @@ def runVeil(citations, filename):
     # print(sampleDay)
     # print(sampleNight)
 
-    sampleDayNight = pd.concat([sampleDay,sampleNight],axis=1,join_axes=[sampleDay.index])
+    # sampleDayNight = pd.concat([sampleDay,sampleNight],axis=1,join_axes=[sampleDay.index])
+    # sampleDayNight.columns = sampleDayNight.columns.get_level_values(0)
+    sampleDayNight = sampleDay.merge(sampleNight, left_index=True, right_index=True)
+    sampleDayNight = sampleDayNight.filter(["SAMEDATE","DAYLIGHT","DARKNESS"])
 
-    sampleDayNight.plot(figsize=(8,5))
-    plt.xlabel('Percent stops of black drivers, daylight and darkness')
+    colors = [(86/255,  129/255,  194/255),(222/255,  113/255,  38/255)]
+    sampleDayNight.plot(figsize=(8,5),color=colors)
+    plt.xlabel('Percent stops of black drivers over time ' + str(year[0]) + "-"+ str(year[1]))
     # plt.show()
+    plt.savefig("VoDFigure_" + str(year[0]) + "_"+ str(year[1]) + ".png")
+    # fig = plt.figure()
+    # fig.savefig("VoDFigure_" + str(year[0]) + "_"+ str(year[1]) + ".png")
     # plt.close()
 
     # # Plot regression line
