@@ -71,10 +71,10 @@ def runAddress(citations, gender="All", age="All"):
     ## Adjust census numbers if gender filter is on
     if gender == "Male":
         for field in zipFieldlist:
-            zipJoin[field] = zzipJoin.apply(lambda row: row[field] * (row["HC01_EST_VC13"]/100), axis=1)
+            zipJoin[field] = zipJoin.apply(lambda row: row[field] * (row["HC01_EST_VC13"]/100), axis=1)
     elif gender == "Female":
         for field in zipFieldlist:
-            zipJoin[field] = zzipJoin.apply(lambda row: row[field] * (row["HC01_EST_VC14"]/100), axis=1)
+            zipJoin[field] = zipJoin.apply(lambda row: row[field] * (row["HC01_EST_VC14"]/100), axis=1)
 
     ## Adjust census numbers if age filter is on (young== 16-24, old==25+)
     if age == "Young":

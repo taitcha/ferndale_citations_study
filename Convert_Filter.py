@@ -22,10 +22,10 @@ def filterData(citations, startYear, endYear, gender="All", age=(0,150)):
     countFiltered += PARK_VIOL_EXCL
 
     raceCount = citationsF["Offender Race"].value_counts()
-    colors = [(86 / 255, 129 / 255, 194 / 255)]
-    raceCount.plot.bar(color=colors)
-    plt.show()
-    plt.close()
+    # colors = [(86 / 255, 129 / 255, 194 / 255)]
+    # raceCount.plot.bar(color=colors)
+    # plt.show()
+    # plt.close()
     print("Race Counts: ")
     print(raceCount)
 
