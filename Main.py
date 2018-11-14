@@ -6,6 +6,7 @@ import Veil_Darkness as veil
 import Address_Analysis as addy
 import Convert_Filter as filt
 import Bootstrap_Analysis as boot
+import matplotlib.pyplot as plt
 
 ##### Import and filtering #####
 
@@ -96,11 +97,11 @@ def censusBenchmark(years):
     resultsDF.to_csv(filename + "_census_Results" + filetype)
 
 ## Filtering criteria Male/Female/All, age in years, All/Young(16-24)/Old(25+)
-gender = "Male"
+gender = "All"
 age = (0,150)
 ageCategory="All"
-years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
-# years=[(2011,2017)]
+# years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(2017,2017),(2011,2017)]
+years=[(2011,2017)]
 
 ## Filtering on one year
 # filterResults(years)
@@ -112,4 +113,24 @@ years=[(2011,2011),(2012,2012),(2013,2013),(2014,2014),(2015,2015),(2016,2016),(
 # veilAnalysis(years)
 
 ## Census benchmark
-censusBenchmark(years)
+# censusBenchmark(years)
+
+## Analysis charts
+
+## Citations per weekday
+#citations["WEEKDAY"] = citations.apply(lambda row: row['Citation Date_x'].weekday(), axis=1)
+#citations[['WEEKDAY', 'Citation Number']].groupby('WEEKDAY').count().plot(kind='bar', legend=None)
+#plt.xlabel('Citations per weekday - Monday=0, Sunday=6')
+#plt.show()
+
+## Citations per month
+#citations["MONTH"] = citations['Citation Date_x'].map(lambda x: x.month)
+#citations[['MONTH', 'Citation Number']].groupby('MONTH').count().plot(kind='bar', legend=None)
+#plt.xlabel('Citations per Month - Jan=1')
+#plt.show()
+
+## Citations per week
+#citations["WEEK"] = citations['Citation Date_x'].map(lambda x: x.week)
+#citations[['WEEK', 'Citation Number']].groupby('WEEK').count().plot(kind='bar', legend=None)
+#plt.xlabel('Citations per week')
+#plt.show()

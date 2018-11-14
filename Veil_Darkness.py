@@ -12,6 +12,94 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 filetype = ".csv"
 
+
+def percent_sample_awesome_plot(big_df, x, y, hue, col=None, smoothing=1, n_samples=10000, xlabel='', ylabel='',
+                                relabeling=None, colors=None):
+    hues = set(big_df[hue])
+
+    grouped = big_df.groupby(x)
+    df_for_plot = []
+    for x_val, group in grouped:
+        raw_counts = []
+        # print x_val, group[[hue, y]]
+        for row in group[[hue, y]].itertuples():
+            hue_name = row[1]
+            # Generate a long list of how many times this particular hue occurred
+            for i in range(row[2]):
+                raw_counts.append(hue_name)
+
+        # Sample from the total counts to bootstrap the percentages of how many times each hue occurs
+        n = len(raw_counts)
+        nf = float(n)
+        hue_to_probs = defaultdict(list)
+        for i in range(n_samples):
+            sample = np.random.choice(raw_counts, n)
+            counts = Counter(sample)
+            for h in hues:
+                hue_to_probs[h].append(counts[h] / nf)
+
+        # print hue_to_probs
+        for h, probs in hue_to_probs.iteritems():
+            bleh = {}
+            df_for_plot.append(bleh)
+
+            probs.sort()
+            bleh['X'] = x_val
+            bleh['Hue'] = h
+            bleh['Mean'] = probs[len(probs) / 2]
+            bleh['Upper Bound'] = probs[(19 * len(probs)) / 20]  # 95%
+            bleh['Lower Bound'] = probs[len(probs) / 20]  # 5%
+    df_for_plot = pd.DataFrame(df_for_plot)
+
+    mycolors = [
+
+        '#66a61e',
+
+        '#e7298a',
+        '#7570b3',
+        '#1b9e77',
+
+        '#e6ab02',
+        '#d95f02',
+
+    ]
+
+    if colors is None:
+        colors = mycolors
+
+    styles = ['-', '--', '-.', ':', '-']
+    for j, h in enumerate(hues):
+        sub_df = df_for_plot[df_for_plot['Hue'] == h]
+        xs = sub_df['X']
+
+        attr_mean = sub_df['Mean']
+
+        # print h, attr_mean
+
+        lower_bound = sub_df['Lower Bound']
+        upper_bound = sub_df['Upper Bound']
+
+        label = h
+        if relabeling is not None:
+            if label in relabeling:
+                label = relabeling[label]
+
+        plt.plot(xs, attr_mean, \
+                 label=label, color=colors[j % len(colors)], ls=styles[j % len(styles)])
+
+        plt.fill_between(xs, lower_bound, upper_bound, \
+                         interpolate=False, alpha=0.1, edgecolor=None, \
+                         color=colors[j % len(colors)])
+
+    plt.legend(ncol=1, fontsize=24, loc='upper left', bbox_to_anchor=(1., 0.8))
+    plt.gca().set_axis_bgcolor('white')
+
+    ax = plt.gca()
+    ax.set_ylabel(ylabel, fontsize=22)
+    ax.set_xlabel(xlabel, fontsize=22)
+    ax.grid(False)
+    plt.tight_layout()
+
 ##### Veil of Darkness analysis #####
 
 def addTimeZone(naiveDate):
@@ -157,6 +245,9 @@ def runVeil(citations, filename, year):
     # sampleDayNight.columns = sampleDayNight.columns.get_level_values(0)
     sampleDayNight = sampleDay.merge(sampleNight, left_index=True, right_index=True)
     sampleDayNight = sampleDayNight.filter(["SAMEDATE","DAYLIGHT","DARKNESS"])
+
+    print(sampleDayNight.head())
+#    percent_sample_awesome_plot(sampleDayNight, x="TIME", y="SAMEDATE")
 
     colors = [(86/255,  129/255,  194/255),(222/255,  113/255,  38/255)]
     sampleDayNight.plot(figsize=(8,5),color=colors)
