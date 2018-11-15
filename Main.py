@@ -35,7 +35,7 @@ def filterResults(years):
     for year in years:
         citations = pd.DataFrame(rawData)
         citations, citationsResults = filt.filterData(citations, year[0], year[1], gender="All", age=(0,99))
-        citations.to_csv(filename + "_filtered" + year[0] +"_"+ year[1] + filetype)
+        citations.to_csv(filename + "_filtered" + str(year[0]) +"_"+ str(year[1]) + filetype)
 
 ## Run Bootstrap analysis
 def bootstrapAnalysis():
@@ -104,7 +104,7 @@ ageCategory="All"
 years=[(2011,2017)]
 
 ## Filtering on one year
-# filterResults(years)
+#filterResults(years)
 
 ## Bootstrap analysis
 # bootstrapAnalysis()
@@ -117,6 +117,10 @@ years=[(2011,2017)]
 
 ## Analysis charts
 
+startDate = datetime.date(2011, 1, 1)
+endDate = datetime.date(2017, 12, 31)
+citations = citations[(citations['Citation Date_x'] >= startDate)
+                                 & (citations['Citation Date_x'] <= endDate)]
 ## Citations per weekday
 #citations["WEEKDAY"] = citations.apply(lambda row: row['Citation Date_x'].weekday(), axis=1)
 #citations[['WEEKDAY', 'Citation Number']].groupby('WEEKDAY').count().plot(kind='bar', legend=None)
@@ -134,3 +138,15 @@ years=[(2011,2017)]
 #citations[['WEEK', 'Citation Number']].groupby('WEEK').count().plot(kind='bar', legend=None)
 #plt.xlabel('Citations per week')
 #plt.show()
+
+### Citations by month over time
+#citations["month/year"] = citations["Citation Date_x"].map(lambda x: (x.year, x.month))
+#citations[['month/year', 'Citation Number']].groupby('month/year').count().plot(kind='bar',legend=None)
+#plt.xlabel('Citations per month over time')
+#plt.show()
+
+### Citations by week over time
+citations["week/year"] = citations["Citation Date_x"].map(lambda x: (x.year, x.week))
+citations[['week/year', 'Citation Number']].groupby('week/year').count().plot(legend=None)
+plt.xlabel('Citations per week over time')
+plt.show()
